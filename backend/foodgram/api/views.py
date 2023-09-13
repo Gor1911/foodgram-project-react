@@ -135,8 +135,7 @@ class RecipeViewSet(ModelViewSet):
                 user=user,
                 recipe=recipe).exists():
                 ShoppingCart.objects.create(
-                    user=user,
-                    recipe=recipe)
+                    user=user, recipe=recipe)
                 return Response(
                     {'message': 'Рецепт добавлен в список покупок'},
                     status=status.HTTP_201_CREATED)
