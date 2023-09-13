@@ -7,14 +7,26 @@ from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.permissions import (AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import (AllowAny,
+                                        IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 
 from users.models import Follow, User
-from recipes.models import (Favorite, Ingredient, IngredientsAmount, Recipe, ShoppingCart, Tag)
+from recipes.models import (Favorite,
+                            Ingredient,
+                            IngredientsAmount,
+                            Recipe,
+                            ShoppingCart,
+                            Tag)
 
 from api.filters import RecipeFilter
 from api.pagination import Pagination
-from api.serializers import (FollowSerializer, IngredientSerializer, RecipeCreateSerializer, RecipeSerializer, TagSerializer, UsersSerializer)
+from api.serializers import (FollowSerializer,
+                             IngredientSerializer,
+                             RecipeCreateSerializer,
+                             RecipeSerializer,
+                             TagSerializer,
+                             UsersSerializer)
 
 
 class UsersViewSet(UserViewSet):
@@ -25,25 +37,34 @@ class UsersViewSet(UserViewSet):
     search_fields = ('username', 'email')
     permission_classes = (AllowAny,)
 
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=['get'],
+            permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
         pages = self.paginate_queryset(request.user.follower.all())
-        serializer = FollowSerializer(pages, many=True, context={'request': request})
+        serializer = FollowSerializer(pages,
+                                      many=True,
+                                      context={'request': request})
         return self.get_paginated_response(serializer.data)
 
-    @action(detail=True, methods=['post', 'delete'], permission_classes=[IsAuthenticated])
+    @action(detail=True,
+            methods=['post', 'delete'],
+            permission_classes=[IsAuthenticated])
     def subscribe(self, request, id):
         if request.method == 'POST':
             follower = self.get_object()
             user = request.user
-            follow = Follow.objects.create(user=user, author=follower,)
+            follow = Follow.objects.create(user=user,
+                                           author=follower,)
             serializer = FollowSerializer(follow)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.data,
+                            status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
             follower = self.get_object()
             user = request.user
-            Follow.objects.filter(user=user, author=follower).delete()
-            return Response({'message': 'Вы отписались'}, status=status.HTTP_204_NO_CONTENT)
+            Follow.objects.filter(user=user,
+                                  author=follower).delete()
+            return Response({'message': 'Вы отписались'},
+                            status=status.HTTP_204_NO_CONTENT)
 
 
 class TagViewSet(ModelViewSet):
@@ -81,33 +102,57 @@ class RecipeViewSet(ModelViewSet):
     def perform_update(self, serializer):
         serializer.save(author=self.request.user)
 
-    @action(detail=True, methods=['post', 'delete'], permission_classes=[IsAuthenticated])
+    @action(detail=True,
+            methods=['post', 'delete'],
+            permission_classes=[IsAuthenticated])
     def favorite(self, request, pk):
         recipe = self.get_object()
         user = request.user
         if request.method == 'POST':
-            created = Favorite.objects.get_or_create(user=user, recipe=recipe)
+            created = Favorite.objects.get_or_create(
+                user=user,
+                recipe=recipe)
             if created:
-                return Response({'message': 'Рецепт добавлен в избранное'}, status=status.HTTP_201_CREATED)
+                return Response(
+                    {'message': 'Рецепт добавлен в избранное'},
+                    status=status.HTTP_201_CREATED)
         elif request.method == 'DELETE':
-            deleted = Favorite.objects.filter(user=user, recipe=recipe).delete()
+            deleted = Favorite.objects.filter(user=user,
+                                              recipe=recipe).delete()
             if deleted:
-                return Response({'message': 'Рецепт удален из избранного'}, status=status.HTTP_204_NO_CONTENT)
+                return Response(
+                    {'message': 'Рецепт удален из избранного'},
+                    status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=['post', 'delete'], permission_classes=[IsAuthenticated])
+    @action(detail=True,
+            methods=['post', 'delete'],
+            permission_classes=[IsAuthenticated])
     def shopping_cart(self, request, pk):
         recipe = self.get_object()
         user = request.user
         if request.method == 'POST':
-            if not ShoppingCart.objects.filter(user=user, recipe=recipe).exists():
-                ShoppingCart.objects.create(user=user, recipe=recipe)
-                return Response({'message': 'Рецепт добавлен в список покупок'}, status=status.HTTP_201_CREATED)
+            if not ShoppingCart.objects.filter(
+                user=user,
+                recipe=recipe).exists():
+                ShoppingCart.objects.create(
+                    user=user,
+                    recipe=recipe)
+                return Response(
+                    {'message': 'Рецепт добавлен в список покупок'},
+                    status=status.HTTP_201_CREATED)
         elif request.method == 'DELETE':
-            shopping_cart_item = get_object_or_404(ShoppingCart, user=user, recipe=recipe)
+            shopping_cart_item = get_object_or_404(
+                ShoppingCart,
+                user=user,
+                recipe=recipe)
             shopping_cart_item.delete()
-            return Response({'message': 'Рецепт удален из списка покупок'}, status=status.HTTP_204_NO_CONTENT)
+            return Response(
+                {'message': 'Рецепт удален из списка покупок'},
+                status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    @action(detail=False,
+            methods=['get'],
+            permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
         user = request.user
         shopping_cart_items = ShoppingCart.objects.filter(user=user)

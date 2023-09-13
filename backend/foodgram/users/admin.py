@@ -12,7 +12,7 @@ class CustomUserAdmin(UserAdmin):
         'last_name',
         'email',
         'password',
-        )
+)
 
 
 @admin.register(Follow)
