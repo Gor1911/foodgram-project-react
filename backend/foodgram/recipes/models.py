@@ -22,7 +22,7 @@ class Recipe(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='recipes',
-        )
+    )
     name = models.CharField(max_length=200,)
     image = models.ImageField(upload_to='food/recipe',
                               null=True, default=None,
@@ -31,13 +31,14 @@ class Recipe(models.Model):
     tags = models.ManyToManyField(
         Tag,
         related_name='recipes',
-        )
+    )
     pub_date = models.DateTimeField(auto_now_add=True,)
     cooking_time = models.PositiveIntegerField()
     ingredients = models.ManyToManyField(
         Ingredient,
         through='IngredientsAmount',
-        related_name="recipes",)
+        related_name="recipes",
+    )
 
 
 class IngredientsAmount(models.Model):
@@ -46,12 +47,12 @@ class IngredientsAmount(models.Model):
         Recipe,
         on_delete=models.CASCADE,
         related_name='ingredient_amount',
-        )
+    )
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
         related_name='ingredient_amount',
-        )
+    )
     amount = models.PositiveIntegerField()
 
 
@@ -61,12 +62,12 @@ class Favorite(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='favorite',
-        )
+    )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         related_name='favorite',
-        )
+    )
 
 
 class ShoppingCart(models.Model):
@@ -75,9 +76,9 @@ class ShoppingCart(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='shopping_cart',
-        )
+    )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         related_name='shopping_cart',
-        )
+    )
