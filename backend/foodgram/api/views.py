@@ -159,10 +159,12 @@ class RecipeViewSet(ModelViewSet):
         with open(filename, 'w') as file:
             for item in shopping_cart_items:
                 file.write(f'Рецепт: {item.recipe.name}\n')
-                ingredients_amounts = IngredientsAmount.objects.filter(recipe=item.recipe)
+                ingredients_amounts = IngredientsAmount.objects.filter(
+                    recipe=item.recipe)
                 for ingredient_amount in ingredients_amounts:
-                    file.write(f'Ингридиенты: {ingredient_amount.ingredient.name}\n')
-                    file.write(f'Количество: {ingredient_amount.amount}\n')
+                    file.write(f'''
+                               Ингридиенты: {ingredient_amount.ingredient.name}
+                               Количество: {ingredient_amount.amount}\n''')
         with open(filename, 'r') as file:
             response = file.read()
         response = HttpResponse(response, content_type='text/plain')
