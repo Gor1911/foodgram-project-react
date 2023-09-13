@@ -1,6 +1,6 @@
-from djoser.serializers import  UserSerializer
+from djoser.serializers import UserSerializer
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework.serializers import (CharField, 
+from rest_framework.serializers import (CharField,
                                         IntegerField,
                                         ModelSerializer,
                                         PrimaryKeyRelatedField,
@@ -8,9 +8,9 @@ from rest_framework.serializers import (CharField,
                                         SerializerMethodField,
                                         )
 
-from recipes.models import (Ingredient, 
-                            IngredientsAmount, 
-                            Recipe, 
+from recipes.models import (Ingredient,
+                            IngredientsAmount,
+                            Recipe,
                             Tag,
                             )
 from users.models import User, Follow
@@ -22,11 +22,11 @@ class UsersSerializer(UserSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 
-                  'id', 
-                  'username', 
+        fields = ('email',
+                  'id',
+                  'username',
                   'first_name',
-                  'last_name', 
+                  'last_name',
                   'is_subscribed',
                   )
 
@@ -48,7 +48,7 @@ class CreateUserSerializer(ModelSerializer):
                   'password',
                   )
         extra_kwargs = {
-            'password': {'write_only': True},  
+            'password': {'write_only': True},
         }
 
     def create(self, validated_data):
@@ -84,13 +84,13 @@ class FollowSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 
-                  'id', 
-                  'username', 
-                  'first_name', 
+        fields = ('email',
+                  'id',
+                  'username',
+                  'first_name',
                   'last_name',
-                  'recipes', 
-                  'is_subscribed', 
+                  'recipes',
+                  'is_subscribed',
                   'recipes_count',
                   )
 
@@ -110,7 +110,6 @@ class FollowSerializer(ModelSerializer):
     def get_is_subscribed(self, obj):
         return obj.author.follower.filter(user=obj.user).exists()
 
-#recipes
 
 class TagSerializer(ModelSerializer):
 
@@ -145,8 +144,9 @@ class ShowIngredientsInRecipeSerializer(ModelSerializer):
 class RecipeSerializer(ModelSerializer):
 
     author = UsersSerializer(read_only=True)
-    ingredients = ShowIngredientsInRecipeSerializer(many=True,
-                                                    source='ingredient_amount',)
+    ingredients = ShowIngredientsInRecipeSerializer(
+        many=True,
+        source='ingredient_amount',)
     tags = TagSerializer(many=True)
     is_favorited = SerializerMethodField()
     image = Base64ImageField()
@@ -178,6 +178,7 @@ class RecipeSerializer(ModelSerializer):
         if user.is_authenticated:
             return obj.shopping_cart.filter(user=user).exists()
 
+
 class IngredientCreateSerializer(ModelSerializer):
 
     id = IntegerField()
@@ -186,10 +187,12 @@ class IngredientCreateSerializer(ModelSerializer):
         model = IngredientsAmount
         fields = ('id', 'amount',)
 
+
 class RecipeCreateSerializer(ModelSerializer):
+
     name = CharField(max_length=200)
     author = UserSerializer(read_only=True)
-    tags = PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)    
+    tags = PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
     ingredients = IngredientCreateSerializer(many=True)
     image = Base64ImageField()
     cooking_time = IntegerField()
@@ -199,23 +202,23 @@ class RecipeCreateSerializer(ModelSerializer):
         fields = (
             'id',
             'name',
-            'author',  
-            'tags',                      
+            'author',
+            'tags',
             'ingredients',
             'image',
             'text',
             'cooking_time',
             )
 
-    def create(self, validated_data): 
+    def create(self, validated_data):
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(**validated_data)
         for ingredient_data in ingredients:
-            ingredient =Ingredient.objects.get(id=ingredient_data['id'])
+            ingredient = Ingredient.objects.get(id=ingredient_data['id'])
             IngredientsAmount.objects.create(recipe=recipe,
                                              ingredient=ingredient,
-                                             amount=ingredient_data['amount'])    
+                                             amount=ingredient_data['amount'])
         recipe.tags.set(tags)
         return recipe
 
@@ -234,12 +237,13 @@ class RecipeCreateSerializer(ModelSerializer):
             instance.ingredients.clear()
             for ingredient_data in ingredients_data:
                 ingredient = Ingredient.objects.get(id=ingredient_data['id'])
-                IngredientsAmount.objects.create(recipe=instance,
-                                                 ingredient=ingredient,
-                                                 amount=ingredient_data['amount'])
+                IngredientsAmount.objects.create(
+                    recipe=instance,
+                    ingredient=ingredient,
+                    amount=ingredient_data['amount'])
         instance.save()
         return instance
-        
+
     def to_representation(self, instance):
         return RecipeSerializer(instance,
                                 context=self.context).data

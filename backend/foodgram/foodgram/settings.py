@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-import os
 
 from pathlib import Path
 
@@ -148,7 +147,6 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 6,
-    
 }
 
 DJOSER = {
@@ -157,11 +155,10 @@ DJOSER = {
 
     'HIDE_USERS': False,
     'SERIALIZERS': {'user': ('api.serializers.UsersSerializer'),
-                    'user_create': ('api.serializers.CreateUserSerializer'), 
-                    'current_user': ('api.serializers.UsersSerializer') 
+                    'user_create': ('api.serializers.CreateUserSerializer'),
+                    'current_user': ('api.serializers.UsersSerializer')
                     },
     'PERMISSIONS': {'user': ('rest_framework.permissions.IsAuthenticated'),
                     'user_delete': ('rest_framework.permissions.IsAdminUser'),
                     },
 }
-

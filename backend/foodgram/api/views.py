@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 
 from djoser.views import UserViewSet
-from rest_framework import status 
+from rest_framework import status
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -42,17 +42,18 @@ class UsersViewSet(UserViewSet):
     @action(detail=False, methods=['get'],
             permission_classes=[IsAuthenticated]
             )
-    def subscriptions(self, request):    
-        pages = self.paginate_queryset(request.user.follower.all())  
-        serializer = FollowSerializer(pages, many=True, context={'request': request})
+    def subscriptions(self, request):
+        pages = self.paginate_queryset(request.user.follower.all())
+        serializer = FollowSerializer(pages, many=True,
+                                      context={'request': request})
         return self.get_paginated_response(serializer.data)
 
     @action(detail=True, methods=['post', 'delete'],
             permission_classes=[IsAuthenticated])
     def subscribe(self, request, id):
         if request.method == 'POST':
-            follower = self.get_object() 
-            user = request.user  
+            follower = self.get_object()
+            user = request.user
             follow = Follow.objects.create(
                 user=user, author=follower,)
             serializer = FollowSerializer(follow)
@@ -118,12 +119,14 @@ class RecipeViewSet(ModelViewSet):
                     status=status.HTTP_201_CREATED,
                 )
         elif request.method == 'DELETE':
-            deleted = Favorite.objects.filter(user=user, recipe=recipe).delete()
-            if deleted: 
+            deleted = Favorite.objects.filter(user=user,
+                                              recipe=recipe).delete()
+            if deleted:
                 return Response(
                     {'message': 'Рецепт удален из избранного'},
                     status=status.HTTP_204_NO_CONTENT,
                 )
+
     @action(
         detail=True, methods=['post', 'delete'],
         permission_classes=[IsAuthenticated]
@@ -132,19 +135,25 @@ class RecipeViewSet(ModelViewSet):
         recipe = self.get_object()
         user = request.user
         if request.method == 'POST':
-            if not ShoppingCart.objects.filter(user=user, recipe=recipe).exists():
+            if not ShoppingCart.objects.filter(
+                user=user,
+                recipe=recipe).exists():
                 ShoppingCart.objects.create(user=user, recipe=recipe)
                 return Response(
                     {'message': 'Рецепт добавлен в список покупок'},
                     status=status.HTTP_201_CREATED,
                 )
         elif request.method == 'DELETE':
-            shopping_cart_item = get_object_or_404(ShoppingCart, user=user, recipe=recipe)
+            shopping_cart_item = get_object_or_404(
+                ShoppingCart,
+                user=user,
+                recipe=recipe)
             shopping_cart_item.delete()
             return Response(
                 {'message': 'Рецепт удален из списка покупок'},
                 status=status.HTTP_204_NO_CONTENT,
             )
+
     @action(detail=False, methods=['get'],
             permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
@@ -154,10 +163,12 @@ class RecipeViewSet(ModelViewSet):
         with open(filename, 'w') as file:
             for item in shopping_cart_items:
                 file.write(f'Рецепт: {item.recipe.name}\n')
-                ingredients_amounts = IngredientsAmount.objects.filter(recipe=item.recipe)
+                ingredients_amounts = IngredientsAmount.objects.filter(
+                    recipe=item.recipe)
                 for ingredient_amount in ingredients_amounts:
-                    file.write(f'Ингридиенты: {ingredient_amount.ingredient.name}, Количество: {ingredient_amount.amount}\n')
-                file.write('\n')
+                    file.write(f'''
+                               Ингридиенты: {ingredient_amount.ingredient.name}
+                               Количество: {ingredient_amount.amount}\n''')
         with open(filename, 'r') as file:
             response = file.read()
         response = HttpResponse(response, content_type='text/plain')

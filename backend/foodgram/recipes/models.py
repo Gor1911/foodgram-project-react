@@ -11,7 +11,7 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
-    
+
     name = models.CharField(max_length=200,)
     measurement_unit = models.CharField(max_length=200,)
 
@@ -24,7 +24,7 @@ class Recipe(models.Model):
         related_name='recipes',
         )
     name = models.CharField(max_length=200,)
-    image = models.ImageField(upload_to='food/recipe', 
+    image = models.ImageField(upload_to='food/recipe',
                               null=True, default=None,
                               )
     text = models.TextField()
@@ -43,8 +43,8 @@ class Recipe(models.Model):
 class IngredientsAmount(models.Model):
 
     recipe = models.ForeignKey(
-        Recipe, 
-        on_delete=models.CASCADE, 
+        Recipe,
+        on_delete=models.CASCADE,
         related_name='ingredient_amount',
         )
     ingredient = models.ForeignKey(
@@ -64,7 +64,7 @@ class Favorite(models.Model):
         )
     recipe = models.ForeignKey(
         Recipe,
-        on_delete=models.CASCADE, 
+        on_delete=models.CASCADE,
         related_name='favorite',
         )
 

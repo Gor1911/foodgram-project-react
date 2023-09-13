@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from .models import (Tag, 
-                     Ingredient, 
+from .models import (Tag,
+                     Ingredient,
                      Recipe,
                      IngredientsAmount,
                      Favorite,
@@ -19,7 +19,7 @@ class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit')
 
 
-class IngredientInRecipe(admin.TabularInline): 
+class IngredientInRecipe(admin.TabularInline):
     model = Recipe.ingredients.through
 
 
@@ -30,7 +30,7 @@ class RecipeAdmin(admin.ModelAdmin):
     search_fields = ('name', 'author__username')
     filter_horizontal = ('ingredients', 'tags')
     inlines = [IngredientInRecipe]
-    
+
 
 @admin.register(IngredientsAmount)
 class IngredientsAmountAdmin(admin.ModelAdmin):
