@@ -131,10 +131,9 @@ class RecipeViewSet(ModelViewSet):
         recipe = self.get_object()
         user = request.user
         if request.method == 'POST':
-            if not ShoppingCart.objects.filter(
-                user=user,
-                recipe=recipe
-                ).exists():
+            if not ShoppingCart.objects.filter(user=user,
+                                               recipe=recipe
+                                               ).exists():
                 ShoppingCart.objects.create(
                     user=user, recipe=recipe)
                 return Response(
