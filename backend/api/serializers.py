@@ -10,7 +10,10 @@ from rest_framework.serializers import (
     SerializerMethodField,
 )
 
-from recipes.models import Ingredient, IngredientsAmount, Recipe, Tag
+from recipes.models import (Ingredient,
+                            IngredientsAmount,
+                            Recipe,
+                            Tag)
 from users.models import User, Follow
 
 
@@ -263,6 +266,15 @@ class RecipeCreateSerializer(ModelSerializer):
         return recipe
 
     def update(self, instance, validated_data):
+        self.update_recipe_fields(instance, validated_data)
+        self.update_tags(instance, validated_data)
+        self.update_ingredients(instance, validated_data)
+        instance.save()
+        return instance
+
+    def update_recipe_fields(self,
+                             instance,
+                             validated_data):
         instance.name = validated_data.get('name',
                                            instance.name)
         instance.image = validated_data.get('image',
@@ -271,52 +283,41 @@ class RecipeCreateSerializer(ModelSerializer):
                                            instance.text)
         instance.cooking_time = validated_data.get('cooking_time',
                                                    instance.cooking_time)
-        ingredients_data = validated_data.get('ingredients')
-        if 'tags' not in validated_data:
-            raise ValidationError('''Поле tags
-                                  обязательно при
-                                  обновлении рецепта.''')
-        tags = validated_data['tags']
-        if len(tags) != len(set(tags)):
-            raise ValidationError('''Список тегов
-                                  не должен содержать
-                                  повторяющиеся элементы.''')
-        if 'tags' not in validated_data:
-            raise ValidationError('''Поле tags
-                                  обязательно при
-                                  обновлении рецепта.''')
-        if 'ingredients' not in validated_data:
-            raise ValidationError('''Поле ingredients
-                                  обязательно при
-                                  обновлении рецепта.''')
-        if ingredients_data:
-            ingredient_ids = set()
-            instance.ingredients.clear()
-            for ingredient_data in ingredients_data:
-                ingredient_id = ingredient_data.get('id')
-                amount = ingredient_data.get('amount')
-                if amount < 1:
-                    raise ValidationError(f'''Количество ингредиента
-                                          с id {ingredient_id} должно
-                                          быть больше 0.''')
-                try:
-                    ingredient = Ingredient.objects.get(id=ingredient_id)
-                except Ingredient.DoesNotExist:
-                    raise ValidationError(f'''Ингредиент с id {ingredient_id}
-                                          не существует.''')
-                if ingredient_id in ingredient_ids:
-                    raise ValidationError(f'''Ингредиент с id {ingredient_id}
-                                          уже добавлен в этот рецепт.''')
-                IngredientsAmount.objects.create(
-                    recipe=instance,
-                    ingredient=ingredient,
-                    amount=amount,)
-                ingredient_ids.add(ingredient_id)
+
+    def update_tags(self, instance, validated_data):
         tags = validated_data.get('tags')
         if tags:
             instance.tags.set(tags)
-        instance.save()
-        return instance
+
+    def update_ingredients(self, instance, validated_data):
+        ingredients_data = validated_data.get('ingredients')
+        if not ingredients_data:
+            return
+        ingredient_ids = set()
+        instance.ingredients.clear()
+        for ingredient_data in ingredients_data:
+            ingredient_id = ingredient_data.get('id')
+            amount = ingredient_data.get('amount')
+            if amount < 1:
+                raise ValidationError(f'''Количество ингредиента
+                                      с id {ingredient_id}
+                                      должно быть больше 0.''')
+            try:
+                ingredient = Ingredient.objects.get(id=ingredient_id)
+            except Ingredient.DoesNotExist:
+                raise ValidationError(f'''Ингредиент
+                                      с id {ingredient_id}
+                                      не существует.''')
+            if ingredient_id in ingredient_ids:
+                raise ValidationError(f'''Ингредиент
+                                      с id {ingredient_id}
+                                      уже добавлен в этот рецепт.''')
+            IngredientsAmount.objects.create(
+                recipe=instance,
+                ingredient=ingredient,
+                amount=amount,
+            )
+            ingredient_ids.add(ingredient_id)
 
     def to_representation(self, instance):
         return RecipeSerializer(instance, context=self.context).data
