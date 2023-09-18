@@ -198,8 +198,8 @@ class RecipeReadSerializer(ModelSerializer):
         user = (request.user if request
                 and request.user.is_authenticated else None)
         return bool(
-            request and user and
-            obj.shopping_cart.filter(user=user).exists())
+            request and user
+            and obj.shopping_cart.filter(user=user).exists())
 
 
 class IngredientCreateSerializer(ModelSerializer):
