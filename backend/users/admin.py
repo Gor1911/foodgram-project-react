@@ -1,17 +1,16 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-
 from .models import User, Follow
 
 
 @admin.register(User)
-class CustomUserAdmin(UserAdmin):
-    list_display = (
-        'username',
-        'first_name',
-        'last_name',
-        'email',
-        'password')
+class UserAdmin(UserAdmin):
+    list_display = ('username',
+                    'first_name',
+                    'last_name', 'email',
+                    'is_staff')
+    list_filter = ('is_staff',
+                   'is_superuser')
 
 
 @admin.register(Follow)

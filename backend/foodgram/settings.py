@@ -9,20 +9,24 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
+import os
 
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# load_dotenv()
+
 BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_ROOT = os.path.join(BASE_DIR, 'data')
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-84@7_2z(jskp9y^55c-ujryiq=$^)&@!-8!qv!+vzv6wso&+d2'
 
-# SECURITY WARNING: don't run with debug turned on in production!
+# SECRET_KEY = str(os.getenv('SECRET_KEY'))
+
+# DEBUG = os.getenv('DEBUG', 'False') == 'True'
+
+# ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS','localhost,127.0.0.1').split(',')
+
 DEBUG = True
 
 ALLOWED_HOSTS = []
@@ -43,6 +47,7 @@ INSTALLED_APPS = [
     'djoser',
     'api',
     'recipes',
+    'colorfield',
     'users',
 ]
 
@@ -87,6 +92,17 @@ DATABASES = {
     }
 }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.getenv('POSTGRES_DB', 'django'),
+#         'USER': os.getenv('POSTGRES_USER', 'django'),
+#         'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
+#         'HOST': os.getenv('DB_HOST', ''),
+#         'PORT': os.getenv('DB_PORT', 5432)
+#     }
+# }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -110,7 +126,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru-ru'
 
 TIME_ZONE = 'UTC'
 
@@ -136,6 +152,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'users.User'
 
+PAGE_SIZE = 6
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
@@ -143,9 +161,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
-    'DEFAULT_PAGINATION_CLASS':
-        'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 6,
+    # 'DEFAULT_PAGINATION_CLASS':
+    #     'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': PAGE_SIZE,
 }
 
 DJOSER = {
@@ -155,9 +173,12 @@ DJOSER = {
     'HIDE_USERS': False,
     'SERIALIZERS': {'user': ('api.serializers.UsersSerializer'),
                     'user_create': ('api.serializers.CreateUserSerializer'),
-                    'current_user': ('api.serializers.UsersSerializer')
-                    },
+                    'current_user': ('api.serializers.UsersSerializer')},
     'PERMISSIONS': {'user': ('rest_framework.permissions.IsAuthenticated'),
-                    'user_delete': ('rest_framework.permissions.IsAdminUser'),
-                    },
+                    'user_delete': ('rest_framework.permissions.IsAdminUser'),},
 }
+
+MAX_USERNAME_LENGTH = 150
+MAX_PASSWORD_LENGTH = 150
+MAX_EMAIL_LENGTH = 254
+MAX_NAME_LENGTH = 150
