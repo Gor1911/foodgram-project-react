@@ -13,26 +13,20 @@ import os
 
 from pathlib import Path
 
-# load_dotenv()
+from dotenv import load_dotenv 
+
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
 DATA_ROOT = os.path.join(BASE_DIR, 'data')
 
+SECRET_KEY = str(os.getenv('SECRET_KEY'))
 
-SECRET_KEY = 'django-insecure-84@7_2z(jskp9y^55c-ujryiq=$^)&@!-8!qv!+vzv6wso&+d2'
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-# SECRET_KEY = str(os.getenv('SECRET_KEY'))
-
-# DEBUG = os.getenv('DEBUG', 'False') == 'True'
-
-# ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS','localhost,127.0.0.1').split(',')
-
-DEBUG = True
-
-ALLOWED_HOSTS = []
-
-
-# Application definition
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS','localhost,127.0.0.1').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
