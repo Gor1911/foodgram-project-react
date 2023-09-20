@@ -167,8 +167,8 @@ class RecipeViewSet(ModelViewSet):
                 ingredients_amounts = IngredientsAmount.objects.filter(
                     recipe=item.recipe
                 ).values(
-                    'ingredient__name', 'ingredient__measurement_unit'
-                    ).annotate(
+                    'ingredient__name',
+                    'ingredient__measurement_unit').annotate(
                     total_amount=Sum('amount'))
                 for ingr_amount in ingredients_amounts:
                     file.write(
