@@ -2,25 +2,31 @@ from colorfield.fields import ColorField
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.conf import settings
 
 User = get_user_model()
 
 
 class Tag(models.Model):
-    name = models.CharField(max_length=150, unique=True)
-    color = ColorField()
-    slug = models.SlugField(max_length=150, unique=True)
+    name = models.CharField(max_length=settings.MAX_CHAR_LENGTH,
+                            unique=True)
+    color = ColorField(unique=True)
+    slug = models.SlugField(max_length=settings.MAX_SLUG_LENGTH,
+                            unique=True)
 
     class Meta:
-        ordering = ['name']
+        ordering = ('name',)
 
 
 class Ingredient(models.Model):
-    name = models.CharField(max_length=200, unique=True)
-    measurement_unit = models.CharField(max_length=200, unique=True)
+    name = models.CharField(
+        max_length=settings.MAX_CHAR_LENGTH, unique=True)
+    measurement_unit = models.CharField(
+        max_length=settings.MAX_CHAR_LENGTH, )
 
     class Meta:
-        ordering = ['name']
+        ordering = ('name',)
+        unique_together = ('name', 'measurement_unit')
 
 
 class Recipe(models.Model):
@@ -29,10 +35,9 @@ class Recipe(models.Model):
         on_delete=models.CASCADE,
         related_name='recipes',
     )
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=settings.MAX_CHAR_LENGTH)
     image = models.ImageField(
         upload_to='food/recipe',
-        null=True,
         default=None,
     )
     text = models.TextField()
@@ -43,8 +48,10 @@ class Recipe(models.Model):
     pub_date = models.DateTimeField(auto_now_add=True)
     cooking_time = models.PositiveSmallIntegerField(
         validators=[
-            MinValueValidator(limit_value=1),
-            MaxValueValidator(limit_value=32767)
+            MinValueValidator(
+                limit_value=settings.MIN_SMALL_INT_VALUE),
+            MaxValueValidator(
+                limit_value=settings.MAX_SMALL_INT_VALUE)
         ]
     )
     ingredients = models.ManyToManyField(
@@ -54,7 +61,7 @@ class Recipe(models.Model):
     )
 
     class Meta:
-        ordering = ['-pub_date']
+        ordering = ('-pub_date',)
 
 
 class IngredientsAmount(models.Model):
@@ -70,13 +77,19 @@ class IngredientsAmount(models.Model):
     )
     amount = models.PositiveSmallIntegerField(
         validators=[
-            MinValueValidator(limit_value=1),
-            MaxValueValidator(limit_value=32767)
+            MinValueValidator(
+                limit_value=settings.MIN_SMALL_INT_VALUE),
+            MaxValueValidator(
+                limit_value=settings.MAX_SMALL_INT_VALUE)
         ]
     )
 
     class Meta:
-        unique_together = ('recipe', 'ingredient')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'ingredient'],
+                name='unique_recipe_ingredient')
+        ]
 
 
 class Favorite(models.Model):
@@ -92,7 +105,11 @@ class Favorite(models.Model):
     )
 
     class Meta:
-        unique_together = ('user', 'recipe')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_user_recipe')
+        ]
 
 
 class ShoppingCart(models.Model):
@@ -108,4 +125,8 @@ class ShoppingCart(models.Model):
     )
 
     class Meta:
-        unique_together = ('user', 'recipe')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_user_recipe_cart')
+        ]

@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from django.contrib.auth.admin import UserAdmin
 from .models import User, Follow
 
@@ -9,8 +10,7 @@ class UserAdmin(UserAdmin):
                     'first_name',
                     'last_name', 'email',
                     'is_staff')
-    list_filter = ('is_staff',
-                   'is_superuser')
+    list_filter = ('username', 'email')
 
 
 @admin.register(Follow)
