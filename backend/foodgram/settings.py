@@ -16,7 +16,7 @@ SECRET_KEY = str(os.getenv('SECRET_KEY'))
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
-
+# settings.py:18:42: E231 missing whitespace after ','
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
