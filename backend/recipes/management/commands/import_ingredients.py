@@ -4,6 +4,7 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 from recipes.models import Ingredient
 
+
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         file_path = 'ingredients.json'
@@ -18,8 +19,9 @@ class Command(BaseCommand):
                 ingredient_name = ingredient['name']
                 measurement_unit = ingredient['measurement_unit']
                 ingredients_to_create.append(
-                    Ingredient(name=ingredient_name, measurement_unit=measurement_unit)
-                )
+                    Ingredient(name=ingredient_name,
+                               measurement_unit=measurement_unit))
             Ingredient.objects.bulk_create(ingredients_to_create)
-            self.stdout.write(self.style.SUCCESS(f'Создано{len(
-                ingredients_to_create)} ингредиентов'))
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f'Создано{len(ingredients_to_create)} ингредиентов'))
