@@ -1,15 +1,16 @@
-from django.contrib.auth.models import AbstractUser
-from django.db import models
-from django.db.models import CheckConstraint, Q, F
 from django.conf import settings
+from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.db import models
+from django.db.models import CheckConstraint, F, Q
 
 
 class User(AbstractUser):
-
+    username_validator = UnicodeUsernameValidator
     username = models.CharField(
         max_length=settings.MAX_USERNAME_LENGTH,
         unique=True,
-        validators=[AbstractUser.username_validator],)
+        validators=[username_validator],)
     password = models.CharField(
         max_length=settings.MAX_PASSWORD_LENGTH)
     email = models.EmailField(
@@ -27,12 +28,12 @@ class User(AbstractUser):
 
 class Follow(models.Model):
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         on_delete=models.CASCADE,
         related_name='follower',
     )
     author = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+        User,
         on_delete=models.CASCADE,
         related_name='following',
     )

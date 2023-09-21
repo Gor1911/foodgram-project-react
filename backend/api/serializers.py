@@ -1,12 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db import transaction
+from rest_framework import status
 
 from drf_extra_fields.fields import Base64ImageField
 from djoser.serializers import UserSerializer
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import (
-    CharField,
     IntegerField,
     ModelSerializer,
     PrimaryKeyRelatedField,
@@ -32,8 +31,10 @@ class IsSubscribedMixin:
 
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
+        user = getattr(obj, 'user', None)
         return (request and request.user.is_authenticated
-                and obj.author.follower.filter(user=obj.user).exists())
+                and user and obj.author.follower.filter(
+                    user=request.user).exists())
 
 
 class UsersSerializer(UserSerializer, IsSubscribedMixin):
@@ -51,14 +52,6 @@ class UsersSerializer(UserSerializer, IsSubscribedMixin):
             'is_subscribed',
         )
 
-    def get_is_subscribed(self, obj):
-        request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            return Follow.objects.filter(
-                user=request.user,
-                author=obj).exists()
-        return False  # не работает с миксином выше
-
 
 class FollowRecipeSerializerShortInfo(ModelSerializer):
     class Meta:
@@ -72,12 +65,7 @@ class FollowRecipeSerializerShortInfo(ModelSerializer):
 
 
 class FollowSerializer(IsSubscribedMixin, ModelSerializer,):
-    id = IntegerField(source='author.id')
-    email = ReadOnlyField(source='author.email')
-    username = CharField(source='author.username')
-    first_name = CharField(source='author.first_name')
-    last_name = CharField(source='author.last_name')
-    # не работает если удалить
+
     is_subscribed = SerializerMethodField()
     recipes = SerializerMethodField()
     recipes_count = SerializerMethodField()
@@ -98,24 +86,13 @@ class FollowSerializer(IsSubscribedMixin, ModelSerializer,):
     def get_recipes(self, obj):
         request = self.context.get('request')
         recipes_limit = request.GET.get('recipes_limit')
-        recipes = Recipe.objects.filter(author=obj.author)
+        recipes = obj.recipes.all()
         if recipes_limit:
             recipes = recipes[:(int(recipes_limit))]
         return FollowRecipeSerializerShortInfo(recipes, many=True).data
 
     def get_recipes_count(self, obj):
-        return obj.author.recipes.count()
-
-    def validate(self, data):
-        user = self.context['request'].user
-        author = self.instance.author if self.instance else None
-        if author == user:
-            raise ValidationError(
-                {'message': 'Вы не можете подписаться на себя'})
-        if Follow.objects.filter(user=user, author=author).exists():
-            raise ValidationError(
-                {'message': 'Вы уже подписаны на этого пользователя'})
-        return data
+        return obj.recipes.count()
 
 
 class TagSerializer(ModelSerializer):
@@ -176,15 +153,15 @@ class RecipeReadSerializer(ModelSerializer):
 
     def get_is_favorited(self, obj):
         request = self.context.get('request')
-        return (
-            request and request.user
-            and obj.favorite.filter(user=request.user).exists())
+        if request.user.is_authenticated:
+            return obj.favorite.filter(user=request.user).exists()
+        return False
 
     def get_is_in_shopping_cart(self, obj):
         request = self.context.get('request')
-        return (
-            request and request.user
-            and obj.shopping_cart.filter(user=request.user).exists())
+        if request.user.is_authenticated:
+            return obj.shopping_cart.filter(user=request.user).exists()
+        return False
 
 
 class IngredientCreateSerializer(ModelSerializer):
@@ -258,8 +235,7 @@ class RecipeCreateSerializer(ModelSerializer):
         recipe.tags.set(tags)
         return recipe
 
-    @transaction.atomic
-    def create_recipe_ingredients(self, ingredients, recipe):
+    def create_recipe_ingredients(self, recipe, ingredients):
         ingredients_to_create = []
         for ingredient in ingredients:
             ingredients_to_create.append(
@@ -282,20 +258,6 @@ class RecipeCreateSerializer(ModelSerializer):
 
     def to_representation(self, instance):
         return RecipeReadSerializer(instance, context=self.context).data
-
-
-class FollowerSerializer(ModelSerializer):
-    class Meta:
-        model = Follow
-        fields = ('user', 'author')
-
-    def create(self, validated_data):
-        user = validated_data['user']
-        author = validated_data['author']
-        if Follow.objects.filter(user=user, author=author).exists():
-            raise ValidationError("Вы уже подписаны на этого пользователя")
-        subscription = Follow.objects.create(user=user, author=author)
-        return subscription
 
 
 class UserShowFollowigSerializer(ModelSerializer):
@@ -357,11 +319,19 @@ class ShoppingListSerializer(ModelSerializer):
 class FollowingSerializer(ModelSerializer):
     class Meta:
         model = Follow
-        fields = '__all__'
+        fields = ('user', 'author')
 
     def validate(self, data):
-        user = self.context['request'].user
-        author = data.get('author')
+        author = self.instance
+        user = self.context.get('request').user
+        if Follow.objects.filter(author=author, user=user).exists():
+            raise ValidationError(
+                detail='Вы уже подписаны на этого пользователя!',
+                code=status.HTTP_400_BAD_REQUEST
+            )
         if user == author:
-            raise ValidationError("Вы не можете подписаться на себя.")
+            raise ValidationError(
+                detail='Вы не можете подписаться на самого себя!',
+                code=status.HTTP_400_BAD_REQUEST
+            )
         return data

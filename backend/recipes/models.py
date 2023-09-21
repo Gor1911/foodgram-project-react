@@ -1,8 +1,9 @@
 from colorfield.fields import ColorField
+
+from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
-from django.contrib.auth import get_user_model
-from django.conf import settings
 
 User = get_user_model()
 
@@ -20,13 +21,19 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     name = models.CharField(
-        max_length=settings.MAX_CHAR_LENGTH, unique=True)
+        max_length=settings.MAX_CHAR_LENGTH)
     measurement_unit = models.CharField(
         max_length=settings.MAX_CHAR_LENGTH, )
 
     class Meta:
         ordering = ('name',)
-        unique_together = ('name', 'measurement_unit')
+
+    constraints = [
+        models.UniqueConstraint(
+            fields=['name', 'measurement_unit'],
+            name='unique_ingredient'
+        )
+    ]
 
 
 class Recipe(models.Model):
