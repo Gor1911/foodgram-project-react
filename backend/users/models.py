@@ -6,7 +6,7 @@ from django.db.models import CheckConstraint, F, Q
 
 
 class User(AbstractUser):
-    username_validator = UnicodeUsernameValidator
+    username_validator = UnicodeUsernameValidator()
     username = models.CharField(
         max_length=settings.MAX_USERNAME_LENGTH,
         unique=True,

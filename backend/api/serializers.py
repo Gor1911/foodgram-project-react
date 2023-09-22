@@ -1,9 +1,7 @@
 from django.contrib.auth import get_user_model
-from django.core.validators import MaxValueValidator, MinValueValidator
-from rest_framework import status
-
-from drf_extra_fields.fields import Base64ImageField
 from djoser.serializers import UserSerializer
+from drf_extra_fields.fields import Base64ImageField
+from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import (
     IntegerField,
@@ -28,13 +26,11 @@ User = get_user_model()
 
 
 class IsSubscribedMixin:
-
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
-        user = getattr(obj, 'user', None)
+        user = obj
         return (request and request.user.is_authenticated
-                and user and obj.author.follower.filter(
-                    user=request.user).exists())
+                 and user.follower.filter(user=request.user).exists())
 
 
 class UsersSerializer(UserSerializer, IsSubscribedMixin):
@@ -53,7 +49,7 @@ class UsersSerializer(UserSerializer, IsSubscribedMixin):
         )
 
 
-class FollowRecipeSerializerShortInfo(ModelSerializer):
+class RecipeSerializerShortInfo(ModelSerializer):
     class Meta:
         model = Recipe
         fields = (
@@ -89,7 +85,7 @@ class FollowSerializer(IsSubscribedMixin, ModelSerializer,):
         recipes = obj.recipes.all()
         if recipes_limit:
             recipes = recipes[:(int(recipes_limit))]
-        return FollowRecipeSerializerShortInfo(recipes, many=True).data
+        return RecipeSerializerShortInfo(recipes, many=True).data
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
@@ -153,15 +149,15 @@ class RecipeReadSerializer(ModelSerializer):
 
     def get_is_favorited(self, obj):
         request = self.context.get('request')
-        if request.user.is_authenticated:
-            return obj.favorite.filter(user=request.user).exists()
-        return False
+        return (
+            request and request.user.is_authenticated
+            and obj.favorite.filter(user=request.user).exists())
 
     def get_is_in_shopping_cart(self, obj):
         request = self.context.get('request')
-        if request.user.is_authenticated:
-            return obj.shopping_cart.filter(user=request.user).exists()
-        return False
+        return (
+            request and request.user.is_authenticated
+            and obj.shopping_cart.filter(user=request.user).exists())
 
 
 class IngredientCreateSerializer(ModelSerializer):
@@ -181,11 +177,7 @@ class RecipeCreateSerializer(ModelSerializer):
     tags = PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
     ingredients = IngredientCreateSerializer(many=True)
     image = Base64ImageField()
-    cooking_time = IntegerField(validators=[
-        MinValueValidator(1, message=('Время должно быть не менее 1 минуты')),
-        MaxValueValidator(32767,
-                          message=('Время не должно превышать 32767 минут')
-                          )])
+    cooking_time = IntegerField(min_value=1, max_value=32767)
 
     class Meta:
         model = Recipe
@@ -287,8 +279,7 @@ class FavoriteRecipeSerializer(ModelSerializer):
                   'recipe')
 
     def to_representation(self, instance):
-        recipe = FollowRecipeSerializerShortInfo(instance.recipe).data
-        return recipe
+        return RecipeSerializerShortInfo(instance.recipe).data
 
     def validate(self, data):
         user = data['user']
@@ -305,8 +296,7 @@ class ShoppingListSerializer(ModelSerializer):
                   'recipe')
 
     def to_representation(self, instance):
-        recipe = FollowRecipeSerializerShortInfo(instance.recipe).data
-        return recipe
+        return RecipeSerializerShortInfo(instance.recipe).data
 
     def validate(self, data):
         user = data['user']

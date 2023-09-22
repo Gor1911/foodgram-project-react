@@ -71,19 +71,14 @@ class CustomUsersViewSet(UserViewSet):
         follower = self.get_object()
         user = request.user
         if request.method == 'POST':
-            if Follow.objects.filter(user=user,
-                                     author=follower).exists():
-                return Response(
-                    {'message': 'Подписка уже существует'},
-                    status=status.HTTP_400_BAD_REQUEST)
             data = {'user': user.id, 'author': follower.id}
             serializer = FollowingSerializer(data=data,
-                                             context={"request": request})
-            serializer.is_valid()
+                                             context={'request': request})
+            serializer.is_valid(raise_exception=True)
             serializer.save()
             instance = FollowSerializer(
                 follower,
-                context={"request": request}
+                context={'request': request}
             )
             return Response(instance.data,
                             status=status.HTTP_201_CREATED)
@@ -114,7 +109,8 @@ class IngredientViewSet(ReadOnlyModelViewSet):
 
 class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
-    permission_classes = (IsOwnerOrReadOnly,)
+    permission_classes = (IsOwnerOrReadOnly,
+                          IsAuthenticatedOrReadOnly)
     pagination_class = LimitPagePagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
@@ -129,27 +125,23 @@ class RecipeViewSet(ModelViewSet):
         recipe = get_object_or_404(Recipe, pk=pk)
         data = {'user': user.id, 'recipe': recipe.id}
         serializer = serializer_class(data=data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response({'message': success_message},
-                            status=status.HTTP_201_CREATED)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'data': serializer.data},
+                        status=status.HTTP_201_CREATED)
 
-    def delete_item(self, request, pk, model_class, success_message,
+    def delete_item(self, request, pk, model_class,
+                    success_message,
                     not_found_message):
         user = request.user
-        try:
-            recipe = Recipe.objects.get(pk=pk)
-        except Recipe.DoesNotExist:
-            return Response({'message': not_found_message},
+        recipe = get_object_or_404(Recipe, pk=pk)
+        deleted_items_count, _ = model_class.objects.filter(
+            user=user, recipe=recipe).delete()
+        if deleted_items_count > 0:
+            return Response({'message': success_message})
+        else:
+            return Response({'message': 'Item not found'},
                             status=status.HTTP_400_BAD_REQUEST)
-        item = get_object_or_404(model_class, user=user, recipe=recipe)
-        item.delete()
-        if item == 0:
-            return Response(
-                {'message': not_found_message},
-                status=status.HTTP_400_BAD_REQUEST)
-        return Response({'message': success_message},
-                        status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post', 'delete'],
             permission_classes=[IsAuthenticated])
