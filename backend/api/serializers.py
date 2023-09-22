@@ -30,7 +30,7 @@ class IsSubscribedMixin:
         request = self.context.get('request')
         user = obj
         return (request and request.user.is_authenticated
-                 and user.follower.filter(user=request.user).exists())
+                and user.follower.filter(user=request.user).exists())
 
 
 class UsersSerializer(UserSerializer, IsSubscribedMixin):
