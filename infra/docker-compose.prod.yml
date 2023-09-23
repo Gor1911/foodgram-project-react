@@ -12,7 +12,6 @@ services:
       - ./.env
     volumes:
       - pg_data:/var/lib/postgresql/data
-
   backend:
     build: ../backend/
     env_file:
@@ -22,7 +21,6 @@ services:
       - media:/app/media/
     depends_on:
       - db
-
   frontend:
     build:
       context: ../frontend
@@ -31,8 +29,7 @@ services:
       - ../frontend/:/app/result_build/
     depends_on:
       - backend
-
-  nginx:
+  gateway:
     image: nginx:1.19.3
     env_file:
       - ./.env

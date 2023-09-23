@@ -29,7 +29,7 @@ services:
       - ../frontend/:/app/result_build/
     depends_on:
       - backend
-  nginx:
+  gateway:
     image: nginx:1.19.3
     env_file:
       - ./.env
