@@ -137,7 +137,7 @@ class RecipeViewSet(ModelViewSet):
         if deleted_items_count > 0:
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response({'message': 'Item not found'},
-                            status=status.HTTP_400_BAD_REQUEST)
+                        status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['post', 'delete'],
             permission_classes=[IsAuthenticated])
