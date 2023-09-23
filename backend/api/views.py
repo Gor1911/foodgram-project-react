@@ -1,9 +1,9 @@
-from django.db.models import Sum
 from django.http import HttpResponse
-from djoser.views import UserViewSet
 
 from django.contrib.auth import get_user_model
+from django.db.models import Sum
 from django_filters.rest_framework import DjangoFilterBackend
+from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -15,7 +15,7 @@ from rest_framework.permissions import (
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from api.filters import RecipeFilter, IngredientFilter
+from api.filters import IngredientFilter, RecipeFilter
 from api.pagination import LimitPagePagination
 from api.permissions import IsOwnerOrReadOnly
 from api.serializers import (
@@ -29,7 +29,6 @@ from api.serializers import (
     TagSerializer,
     UsersSerializer,
 )
-
 from recipes.models import (
     Favorite,
     Ingredient,
@@ -43,7 +42,7 @@ from users.models import Follow
 User = get_user_model()
 
 
-class CustomUsersViewSet(UserViewSet):
+class UsersViewSet(DjoserUserViewSet):
     queryset = User.objects.all()
     serializer_class = UsersSerializer
     pagination_class = LimitPagePagination
@@ -51,7 +50,7 @@ class CustomUsersViewSet(UserViewSet):
 
     def get_permissions(self):
         if self.action == 'me':
-            return [IsAuthenticated()]
+            self.permission_classes = [IsAuthenticated]
         return super().get_permissions()
 
     @action(detail=False, methods=['get'],
@@ -127,20 +126,17 @@ class RecipeViewSet(ModelViewSet):
         serializer = serializer_class(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({'data': serializer.data},
+        return Response({serializer.data},
                         status=status.HTTP_201_CREATED)
 
-    def delete_item(self, request, pk, model_class,
-                    success_message,
-                    not_found_message):
+    def delete_item(self, request, pk, model_class,):
         user = request.user
         recipe = get_object_or_404(Recipe, pk=pk)
         deleted_items_count, _ = model_class.objects.filter(
             user=user, recipe=recipe).delete()
         if deleted_items_count > 0:
-            return Response({'message': success_message})
-        else:
-            return Response({'message': 'Item not found'},
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': 'Item not found'},
                             status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['post', 'delete'],

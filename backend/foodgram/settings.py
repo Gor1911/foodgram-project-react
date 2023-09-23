@@ -129,13 +129,17 @@ REST_FRAMEWORK = {
 DJOSER = {
     'LOGIN_FIELD': 'email',
     'HIDE_USERS': False,
-    'SERIALIZERS': {'user': ('api.serializers.UsersSerializer'),
-                    'current_user': ('api.serializers.UsersSerializer')},
-    'PERMISSIONS': {'user': ('djoser.permissions.CurrentUserOrAdminOrReadOnly'),
-                    'user_list': ('rest_framework.permissions.AllowAny'),
-                    'user_delete': ('rest_framework.permissions.IsAdminUser')},
+    'SERIALIZERS': {
+        'user': 'api.serializers.UsersSerializer',
+        'current_user': 'api.serializers.UsersSerializer',
+    },
+    'PERMISSIONS': {
+        'user': 'djoser.permissions.CurrentUserOrAdminOrReadOnly',
+        'user_list': 'rest_framework.permissions.AllowAny',
+        'user_delete': 'rest_framework.permissions.IsAdminUser',
+    },
 }
-
+# запятые в сериализаторе ломают все
 MAX_USERNAME_LENGTH = 150
 MAX_PASSWORD_LENGTH = 150
 MAX_EMAIL_LENGTH = 254
