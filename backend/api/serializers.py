@@ -312,7 +312,7 @@ class FollowingSerializer(ModelSerializer):
         fields = ('user', 'author')
 
     def validate(self, data):
-        author = self.instance
+        author = data.get('author')
         user = self.context.get('request').user
         if Follow.objects.filter(author=author, user=user).exists():
             raise ValidationError(

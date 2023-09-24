@@ -1,5 +1,4 @@
 from django.http import HttpResponse
-
 from django.contrib.auth import get_user_model
 from django.db.models import Sum
 from django_filters.rest_framework import DjangoFilterBackend
@@ -67,7 +66,7 @@ class UsersViewSet(DjoserUserViewSet):
             methods=['post', 'delete'],
             permission_classes=[IsAuthenticated])
     def subscribe(self, request, id):
-        follower = self.get_object()
+        follower = get_object_or_404(User, id=id)
         user = request.user
         if request.method == 'POST':
             data = {'user': user.id, 'author': follower.id}
@@ -75,11 +74,11 @@ class UsersViewSet(DjoserUserViewSet):
                                              context={'request': request})
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            instance = FollowSerializer(
+            follower_serializer = FollowSerializer(
                 follower,
                 context={'request': request}
             )
-            return Response(instance.data,
+            return Response(follower_serializer.data,
                             status=status.HTTP_201_CREATED)
         deleted, _ = Follow.objects.filter(
             user=user,
@@ -126,14 +125,13 @@ class RecipeViewSet(ModelViewSet):
         serializer = serializer_class(data=data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response({serializer.data},
+        return Response(serializer.data,
                         status=status.HTTP_201_CREATED)
 
     def delete_item(self, request, pk, model_class,):
         user = request.user
-        recipe = get_object_or_404(Recipe, pk=pk)
         deleted_items_count, _ = model_class.objects.filter(
-            user=user, recipe=recipe).delete()
+            user=user, recipe_id=pk).delete()
         if deleted_items_count > 0:
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response({'message': 'Item not found'},
@@ -145,9 +143,7 @@ class RecipeViewSet(ModelViewSet):
         if request.method == 'POST':
             return self.create_item(request, pk, FavoriteRecipeSerializer,
                                     'Рецепт добавлен в избранное')
-        return self.delete_item(request, pk, Favorite,
-                                'Рецепт удален из избранного',
-                                'Рецепт не существует')
+        return self.delete_item(request, pk, Favorite)
 
     def generate_shopping_cart_data(self, user):
         shopping_cart_items = ShoppingCart.objects.filter(user=user)
@@ -180,9 +176,7 @@ class RecipeViewSet(ModelViewSet):
                                     'Рецепт добавлен в список покупок')
         return self.delete_item(request,
                                 pk,
-                                ShoppingCart,
-                                'Рецепт удален из списка покупок',
-                                'Рецепт не существует')
+                                ShoppingCart,)
 
     @action(detail=False, methods=['get'],
             permission_classes=[IsAuthenticated])
