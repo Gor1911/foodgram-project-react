@@ -132,7 +132,7 @@ DJOSER = {
     'SERIALIZERS': {
         'user': ('api.serializers.UsersSerializer'),
         'current_user': ('api.serializers.UsersSerializer'),
-        # точно запятая нужна? с ней не работает 
+        # точно запятая нужна? с ней не работает
     },
     'PERMISSIONS': {
         'user': ('djoser.permissions.CurrentUserOrAdminOrReadOnly',),
