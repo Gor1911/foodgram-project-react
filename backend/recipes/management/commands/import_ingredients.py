@@ -26,4 +26,4 @@ class Command(BaseCommand):
             Ingredient.objects.bulk_create(ingredients_to_create)
             self.stdout.write(
                 self.style.SUCCESS(
-                    f'Создано{len(ingredients_to_create)} ингредиентов'))
+                    f'Создано {len(ingredients_to_create)} ингредиентов'))
