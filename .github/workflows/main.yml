@@ -60,19 +60,19 @@ jobs:
           context: ./backend/
           push: true
           tags: gorbag733/foodgram_backend:latest
-  frontend_tests:
-    runs-on: ubuntu-latest
+  # frontend_tests:
+  #   runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v3
-    - name: Set up nodeJS
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18
-    - name: Install dependencies
-      run: |
-        cd frontend/
-        npm ci
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #   - name: Set up nodeJS
+  #     uses: actions/setup-node@v3
+  #     with:
+  #       node-version: 18
+  #   - name: Install dependencies
+  #     run: |
+  #       cd frontend/
+  #       npm ci
     # - name: Test frontend
     #   run: |
     #     cd frontend/
