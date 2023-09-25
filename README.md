@@ -30,11 +30,15 @@ git clone git@github.com:Gor1911/foodgram-project-react.git
 Заполнение базы данными:
 
 `sudo docker-compose exec backend python manage.py collectstatic --no-input`
+
 `sudo docker compose -f docker-compose.yml exec backend cp -r /app/collected_static/. /app/static/`
 
 `sudo docker-compose exec backend python manage.py import_ingredients`
 
  Admin
+
   password: 236716
+
   login: gor1911@mail.ru
+  
   доступен по ip: http://62.84.120.229:9090/
