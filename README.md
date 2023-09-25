@@ -15,19 +15,16 @@
 
 ### Как запустить проект 
 
-Клонировать репозиторий:
+-Клонировать репозиторий
 
-``` 
-git clone git@github.com:Gor1911/foodgram-project-react.git
-``` 
-Установить Docker и Docker Compose
+-Установить Docker и Docker Compose
 `sudo apt install docker-ce docker-compose -y`
 
-Запуск контейнера:
+-Запуск контейнера:
 
 `docker-compose up -d`
 
-Заполнение базы данными:
+-Заполнение базы данными:
 
 `sudo docker-compose exec backend python manage.py collectstatic --no-input`
 
@@ -40,5 +37,5 @@ git clone git@github.com:Gor1911/foodgram-project-react.git
   password: 236716
 
   login: gor1911@mail.ru
-  
-  доступен по ip: http://62.84.120.229:9090/
+
+  доступен тут: http://foodgram1911.ddns.net/

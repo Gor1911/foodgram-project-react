@@ -145,25 +145,37 @@ class RecipeViewSet(ModelViewSet):
                                     'Рецепт добавлен в избранное')
         return self.delete_item(request, pk, Favorite)
 
-    def generate_shopping_cart_data(self, user):
-        shopping_cart_items = ShoppingCart.objects.filter(user=user)
+    def generate_shopping_cart_data(self, user): 
+        shopping_cart_items = ShoppingCart.objects.filter(user=user) 
+        ingredients_amounts = IngredientsAmount.objects.filter(
+            recipe__in=[item.recipe for item in shopping_cart_items]
+        ).values(
+            'recipe__name',
+            'ingredient__name',
+            'ingredient__measurement_unit'
+        ).annotate(
+            total_amount=Sum('amount')
+        )
+
         data = ""
+
+        recipe_ingredients = {}
+        for ingr_amount in ingredients_amounts:
+            recipe_name = ingr_amount['recipe__name']
+            if recipe_name not in recipe_ingredients:
+                recipe_ingredients[recipe_name] = []
+
+            recipe_ingredients[recipe_name].append(ingr_amount)
+
         for item in shopping_cart_items:
             data += f'Рецепт: {item.recipe.name}\n'
-            ingredients_amounts = IngredientsAmount.objects.filter(
-                recipe=item.recipe
-            ).values(
-                'ingredient__name',
-                'ingredient__measurement_unit'
-            ).annotate(
-                total_amount=Sum('amount')
-            )
-            for ingr_amount in ingredients_amounts:
-                data += (
-                    f'Ингр.: {ingr_amount["ingredient__name"]}\n'
-                    f'Кол.: {ingr_amount["total_amount"]} '
-                    f'{ingr_amount["ingredient__measurement_unit"]}\n\n'
-                )
+            if item.recipe.name in recipe_ingredients:
+                for ingr_amount in recipe_ingredients[item.recipe.name]:
+                    data += (
+                        f'Ингр.: {ingr_amount["ingredient__name"]}\n'
+                        f'Кол.: {ingr_amount["total_amount"]} {ingr_amount["ingredient__measurement_unit"]}\n\n'
+                    )
+
         return data
 
     @action(detail=True, methods=['post', 'delete'],
