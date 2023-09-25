@@ -15,11 +15,6 @@ services:
   backend:
     image: gorbag733/foodgram_backend
     build: ../backend/
-    command: |
-      bash -c 'python manage.py migrate &&
-      python manage.py collectstatic --noinput &&
-      cp -r /app/collected_static/. /app/static/ &&
-      gunicorn --bind 0:9090 foodgram.wsgi'
     env_file:
       - ./.env
     volumes:
@@ -41,7 +36,7 @@ services:
     env_file:
       - ./.env
     ports:
-      - 9090:80
+      - 80:80
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ../frontend/build:/usr/share/nginx/html/
