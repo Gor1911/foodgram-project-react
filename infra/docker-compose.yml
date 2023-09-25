@@ -15,6 +15,11 @@ services:
   backend:
     image: gorbag733/foodgram_backend
     build: ../backend/
+    command: |
+      bash -c 'python manage.py migrate &&
+      python manage.py collectstatic --noinput &&
+      cp -r /app/collected_static/. /app/static/ &&
+      gunicorn --bind 0:9090 foodgram.wsgi'
     env_file:
       - ./.env
     volumes:
