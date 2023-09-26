@@ -1,5 +1,6 @@
 from django.http import HttpResponse
 from django.contrib.auth import get_user_model
+from django.conf import settings
 from django.db.models import Sum
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
@@ -145,37 +146,20 @@ class RecipeViewSet(ModelViewSet):
                                     'Рецепт добавлен в избранное')
         return self.delete_item(request, pk, Favorite)
 
-    def generate_shopping_cart_data(self, user): 
-        shopping_cart_items = ShoppingCart.objects.filter(user=user) 
+    def generate_shopping_cart_data(self, user):
         ingredients_amounts = IngredientsAmount.objects.filter(
-            recipe__in=[item.recipe for item in shopping_cart_items]
-        ).values(
-            'recipe__name',
-            'ingredient__name',
-            'ingredient__measurement_unit'
-        ).annotate(
-            total_amount=Sum('amount')
-        )
-
+            recipe__shopping_cart__user=user
+            ).values(
+                'ingredient__name',
+                'ingredient__measurement_unit'
+                ).annotate(total_amount=Sum('amount'))
         data = ""
-
-        recipe_ingredients = {}
         for ingr_amount in ingredients_amounts:
-            recipe_name = ingr_amount['recipe__name']
-            if recipe_name not in recipe_ingredients:
-                recipe_ingredients[recipe_name] = []
-
-            recipe_ingredients[recipe_name].append(ingr_amount)
-
-        for item in shopping_cart_items:
-            data += f'Рецепт: {item.recipe.name}\n'
-            if item.recipe.name in recipe_ingredients:
-                for ingr_amount in recipe_ingredients[item.recipe.name]:
-                    data += (
-                        f'Ингр.: {ingr_amount["ingredient__name"]}\n'
-                        f'Кол.: {ingr_amount["total_amount"]} {ingr_amount["ingredient__measurement_unit"]}\n\n'
-                    )
-
+            data += (
+                f'Ингр.: {ingr_amount["ingredient__name"]}\n'
+                f'Кол.: {ingr_amount["total_amount"]} '
+                f'{ingr_amount["ingredient__measurement_unit"]}\n\n'
+            )
         return data
 
     @action(detail=True, methods=['post', 'delete'],
@@ -197,6 +181,6 @@ class RecipeViewSet(ModelViewSet):
         data = self.generate_shopping_cart_data(user)
         response = HttpResponse(data,
                                 content_type='text/plain')
-        filename = "Список"
+        filename = settings.SHOPING_CARD
         response['Content-Disposition'] = f'attachment; filename={filename}'
         return response
