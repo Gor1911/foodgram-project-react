@@ -180,6 +180,5 @@ class RecipeViewSet(ModelViewSet):
         data = self.generate_shopping_cart_data(user)
         response = HttpResponse(data,
                                 content_type='text/plain')
-        filename = settings.SHOPING_CARD
-        response['Content-Disposition'] = f'attachment; filename={filename}'
+        response['Content-Disposition'] = f'attachment; filename={settings.SHOPING_CARD_NAME}'
         return response

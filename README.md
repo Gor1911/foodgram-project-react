@@ -20,6 +20,8 @@
 -Установить Docker и Docker Compose
 `sudo apt install docker-ce docker-compose -y`
 
+-Cоздайте .env файл как в .env.example
+
 -Запуск контейнера:
 
 `docker-compose up -d`
@@ -29,6 +31,8 @@
 `sudo docker-compose exec backend python manage.py collectstatic --no-input`
 
 `sudo docker compose -f docker-compose.yml exec backend cp -r /app/collected_static/. /app/static/`
+
+`sudo docker-compose exec backend python manage.py migrate`
 
 `sudo docker-compose exec backend python manage.py import_ingredients`
 

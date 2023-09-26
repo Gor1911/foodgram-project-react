@@ -196,7 +196,7 @@ class RecipeCreateSerializer(ModelSerializer):
         image = data.get('image')
         tags = data.get('tags')
         ingredients = data.get('ingredients')
-        if not image:
+        if image is not None and not image.strip():
             raise ValidationError(
                 'Необходимо изображение блюда')
         if not tags:
