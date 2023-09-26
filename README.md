@@ -43,3 +43,7 @@
   login: gor1911@mail.ru
 
   доступен тут: http://foodgram1911.ddns.net/
+
+### Автор :
+
+Багдасарян Гор
