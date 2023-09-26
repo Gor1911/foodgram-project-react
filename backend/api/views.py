@@ -148,11 +148,10 @@ class RecipeViewSet(ModelViewSet):
 
     def generate_shopping_cart_data(self, user):
         ingredients_amounts = IngredientsAmount.objects.filter(
-            recipe__shopping_cart__user=user
-            ).values(
+            recipe__shopping_cart__user=user).values(
                 'ingredient__name',
-                'ingredient__measurement_unit'
-                ).annotate(total_amount=Sum('amount'))
+                'ingredient__measurement_unit').annotate(
+                    total_amount=Sum('amount'))
         data = ""
         for ingr_amount in ingredients_amounts:
             data += (
