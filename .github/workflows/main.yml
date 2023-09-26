@@ -110,7 +110,7 @@ jobs:
       uses: appleboy/ssh-action@master
       env:
         DOCKER_LOGIN: gorbag733
-        NGINX_PORT: 9090
+        NGINX_PORT: 8000
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USER }}
