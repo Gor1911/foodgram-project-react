@@ -122,7 +122,7 @@ class ShowIngredientsInRecipeSerializer(ModelSerializer):
 
 
 class RecipeReadSerializer(ModelSerializer):
-    """comment12345"""
+    """comment123456"""
     author = UsersSerializer(read_only=True)
     ingredients = ShowIngredientsInRecipeSerializer(
         many=True,
